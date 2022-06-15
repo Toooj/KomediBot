@@ -1,2 +1,2 @@
 # KomediBot
-bot for discord
+Bot for Discord
