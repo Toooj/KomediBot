@@ -75,7 +75,8 @@ def Conspiracy(organizations,firstNames,lastNames,existingPeopleAlive,existingPe
                             existingPeopleAlive[0]+' is actually dead',
                             existingPeopleDead[0]+' is actually alive',
                             existingPeopleALL[0]+' is actually gay',
-                            existingPeopleALL[0]+' and '+existingPeopleALL[1]+' are actually the same person'
+                            existingPeopleALL[0]+' and '+existingPeopleALL[1]+' are actually the same person',
+                            existingPeopleAlive[0]+' actually won the 2020 election'
                             ]
 
     return conspiracies

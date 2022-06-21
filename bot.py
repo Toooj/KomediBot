@@ -19,6 +19,8 @@ SERVER_ID = os.getenv('SERVER_ID')
 
 random.seed()
 
+LIST_OF_COMMANDS = ['quote','r6op','conspiracy','osrswiki','osrsge','rs3wiki','learn','help']
+
 # TWITTER FUCKERY # don't ask how this works, i have no idea ##########################################
 auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
@@ -182,38 +184,50 @@ async def rs3wiki(ctx):
 @KomediBot.command()
 async def learn(ctx, command, role, flavortext):
 
-    #if flavortext[0] != '"':
-    #    await ctx.send('YOU MUST PUT FLAVORTEXT IN QUOTATIONS. VERY IMPORTANT.')
+    
+    
 
-    print(flavortext)
+    if command in (LIST_OF_COMMANDS + roles.gameSummonAliases):
+        await ctx.send('That command already exists')
 
+    elif role in roles.roleIDs:
+        await ctx.send('A command for this role already exists')
 
-    gameSummonAliases = roles.gameSummonAliases
-    roleIDs = roles.roleIDs
-    existingflavortext = roles.flavortext
+    else:
 
-    os.rename('roles.py','roles_old.py')
+        await ctx.send("I'm a stupid robot who can't figure out how long the flavortext is if you don't put it in quotations")
+        
+        gameSummonAliases = roles.gameSummonAliases
+        roleIDs = roles.roleIDs
+        existingflavortext = roles.flavortext
 
-    #await ctx.send(role)
+    
+        os.rename('roles.py','roles_ifthisexistssomethingwentwrong.py')
 
-    gameSummonAliases.append(str(command))
-    roleIDs.append(str(role))
-    existingflavortext.append(str(flavortext))
+        #await ctx.send(role)
 
-    f = open('roles.py','x')
-    f.write('gameSummonAliases = ["' + '", "'.join([str(item) for item in gameSummonAliases]) + '"]')
-    f.write('\n\n')
-    f.write('roleIDs = ["' + '", "'.join([str(item) for item in roleIDs]) + '"]')
-    f.write('\n')
-    f.write('flavortext = ["' + '", "'.join([str(item) for item in existingflavortext]) + '"]')
-    f.write('\n\n')
-    f.write('gameSummonData = list(zip(roleIDs,flavortext))')
-    f.write('\n\n')
-    f.write('gameSummonDict = dict(zip(gameSummonAliases,gameSummonData))')
-    f.close()
+        gameSummonAliases.append(str(command))
+        roleIDs.append(str(role))
+        existingflavortext.append(str(flavortext))
 
-    importlib.reload(roles)
+        f = open('roles.py','x')
+        f.write('gameSummonAliases = ["' + '", "'.join([str(item) for item in gameSummonAliases]) + '"]')
+        f.write('\n\n')
+        f.write('roleIDs = ["' + '", "'.join([str(item) for item in roleIDs]) + '"]')
+        f.write('\n')
+        f.write('flavortext = ["' + '", "'.join([str(item) for item in existingflavortext]) + '"]')
+        f.write('\n\n')
+        f.write('gameSummonData = list(zip(roleIDs,flavortext))')
+        f.write('\n\n')
+        f.write('gameSummonDict = dict(zip(gameSummonAliases,gameSummonData))')
+        f.close()
 
+        importlib.reload(roles)
+
+        os.remove('roles_old.py')
+        os.rename('roles_ifthisexistssomethingwentwrong.py','roles_old.py')
+
+        await ctx.send('Me smart now, me know now what ~'+str(roles.gameSummonAliases[-1]) +' means')
 
 @KomediBot.command()
 async def help(ctx,full='0'):
