@@ -8,7 +8,9 @@ import tweepy
 import discord
 from discord.ext import commands
 import roles
-import komedi
+import conspiracy as con
+import siege
+import dnd
 
 load_dotenv('token.env')
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -18,9 +20,15 @@ SERVER_ID = os.getenv('SERVER_ID')
 
 random.seed()
 
-LIST_OF_COMMANDS = ['quote','r6op','conspiracy','osrswiki','osrsge','rs3wiki','learn','help']
+LIST_OF_MUSIC_COMMANDS = ['p','s','dc','play','skip','showq','addq','clrq']
+LIST_OF_SIEGE_COMMANDS = ['r6op']
+LIST_OF_DND_COMMANDS = ['r','roll']
+LIST_OF_RUNESCAPE_COMMANDS = ['osrswiki','osrsge','rs3wiki']
+LIST_OF_MISC_COMMANDS = ['quote','learn','conspiracy','help']
+LIST_OF_ALL_COMMANDS = [*LIST_OF_MUSIC_COMMANDS,*LIST_OF_SIEGE_COMMANDS,*LIST_OF_DND_COMMANDS,*LIST_OF_RUNESCAPE_COMMANDS,*LIST_OF_MISC_COMMANDS]
 
 # TWITTER FUCKERY # don't ask how this works, i have no idea ##########################################
+
 auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_KEY_SECRET)
 api = tweepy.API(auth, wait_on_rate_limit=True)
 new_tweets = tweepy.Cursor(api.user_timeline, screen_name="bbbquotes1", tweet_mode='extended').items(200) #make sure the argument of items() is >= the number of tweets that exist on @bbbquotes1
@@ -118,38 +126,38 @@ async def r6op(ctx, team, number=1):
     if int(number) not in range(1,6):
         response+= '<number> must be between 1 and 5 (inclusive)'
         await ctx.send(response)
-    elif team not in (komedi.atkAliases+komedi.defAliases):
+    elif team not in (siege.atkAliases+siege.defAliases):
         response+= '<team> must be attack or defence (or variants of those words)'
         await ctx.send(response)
     else:
-        attackerList = komedi.attackerList
-        defenderList = komedi.defenderList
+        attackerList = siege.attackerList
+        defenderList = siege.defenderList
         random.shuffle(attackerList)
         random.shuffle(defenderList)
 
         response=''
 
-        if team in komedi.atkAliases:
+        if team in siege.atkAliases:
             for i in range(number):
                 response+=attackerList[i]+' '
             await ctx.send(response)
             
-        if team in komedi.defAliases:
+        if team in siege.defAliases:
             for i in range(number):
                 response+=defenderList[i]+' '
             if response.find('~~Clash~~') >= 0:
                 response+=defenderList[-1]+' '
             await ctx.send(response)
 
-@KomediBot.command()
-async def r(ctx): ## TODO
-    print('test')
-    await ctx.send('test')
+# DND #
 
 @KomediBot.command()
-async def roll(ctx):
-    #r(ctx)
-    pass
+async def r(ctx, dice):
+    await ctx.send(dnd.rollCommand(dice))
+    
+@KomediBot.command()
+async def roll(ctx, dice):
+    await ctx.send(dnd.rollCommand(dice))
 
 # RuneScape #
 
@@ -175,7 +183,7 @@ async def quote(ctx):
 
 @KomediBot.command()
 async def learn(ctx, command, role, flavortext):
-    if command in (LIST_OF_COMMANDS + roles.gameSummonAliases):
+    if command in (LIST_OF_ALL_COMMANDS + roles.gameSummonAliases):
         await ctx.send('That command already exists')
 
     elif role in roles.roleIDs:
@@ -215,18 +223,18 @@ async def learn(ctx, command, role, flavortext):
 
 @KomediBot.command()
 async def conspiracy(ctx):
-    organizations = komedi.organizations
-    firstNames = komedi.firstNames
-    lastNames = komedi.lastNames
-    existingPeopleAlive = komedi.existingPeopleAlive
-    existingPeopleDead = komedi.existingPeopleDead
-    existingPeopleFictional = komedi.existingPeopleFictional
-    existingPeopleALL = komedi.existingPeopleALL
-    countries = komedi.countries
-    places = komedi.places
-    religions = komedi.religions
-    events = komedi.events
-    actions = komedi.actions
+    organizations = con.organizations
+    firstNames = con.firstNames
+    lastNames = con.lastNames
+    existingPeopleAlive = con.existingPeopleAlive
+    existingPeopleDead = con.existingPeopleDead
+    existingPeopleFictional = con.existingPeopleFictional
+    existingPeopleALL = con.existingPeopleALL
+    countries = con.countries
+    places = con.places
+    religions = con.religions
+    events = con.events
+    actions = con.actions
         
     random.shuffle(organizations)
     random.shuffle(firstNames)
@@ -244,7 +252,7 @@ async def conspiracy(ctx):
     ### these things need to be randomized every time ~conspiracy is said
 
     conspiracyInputs=[organizations,firstNames,lastNames,existingPeopleAlive,existingPeopleDead,existingPeopleFictional,existingPeopleALL,countries,places,religions,events,actions]
-    conspiracies=komedi.Conspiracy(*conspiracyInputs)
+    conspiracies=con.Conspiracy(*conspiracyInputs)
     random.shuffle(conspiracies)
 
     conspiracies[0].capitalize()
@@ -263,7 +271,7 @@ async def help(ctx,full='0'):
     response+= '**~clrq** : Clears the current queue except for ongoing audio. NOT IMPLEMENTED\n'
     response+= '\n**Game Specific:**\n\n'
     response+= '**~r6op <team> <number>** : Generates <number> operators from <team> (i.e. attack/defence).\n'
-    response+= '**~r <numdice>d<typedice>** : Rolls <numdice>d<typedice> and displays the result (and individual rolls). Can also use ~roll. NOT IMPLEMENTED\n' ### maybe in the future might be worth making a dedicated DnD set of commands?
+    response+= '**~r <numdice>d<typedice>** : Rolls <numdice>d<typedice> and displays the result (and individual rolls). Can also use ~roll.\n'
     response+= '**~osrswiki <item>** : Returns OSRS wiki page for <item>. NOT IMPLEMENTED\n'
     response+= '**~osrsge <item>** : Returns OSRS GE information from wiki for <item>. NOT IMPLEMENTED\n'
     response+= '**~rs3wiki <item>** : Returns RS3 wiki page for <item>. NOT IMPLEMENTED\n'
