@@ -61,7 +61,7 @@ async def on_message(message):
                 response = flavortext + '\n' + roleID
                 await message.channel.send(response)
                 
-    elif 'am ' in message.content.lower() or 'pm ' in message.content.lower() # Timezone converter
+    elif 'am ' in message.content.lower() or 'pm ' in message.content.lower(): # Timezone converter
         pass
 
     LMAOList = ['LMAO','LMFAO','LFMAO','KOMEDI']       #KOMEDI response
