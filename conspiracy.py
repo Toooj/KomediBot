@@ -46,7 +46,7 @@ religions = ['Islam','Hinduism','Buddhism','Catholicism','Zoroastrianism','Satan
              'Judaism','Orthodox Christianity',
              'Atheism',"Baha'i",'Confucianism','Druze','Jainism','Rastafarianism','Sikhism']
 
-events = ['the crucifixion of Jesus Christ','9/11','Uvalde','WW2','the Holocaust','the Trump Presidency']
+events = ['the crucifixion of Jesus Christ','9/11','Uvalde','WW2','the Holocaust','the Trump Presidency','COVID-19','WW1','the collapse of the Roman Empire','the creation of the Holy Roman Empire']
 
 actions = ['false flags','child sacrifice','public masturbation','mass rape','genocide',
            'selective breeding','Narco-Terrorism','societal degeneracy','Pride Month','circumcision',
@@ -71,7 +71,21 @@ def Conspiracy(organizations,firstNames,lastNames,existingPeopleAlive,existingPe
                             religions[0]+' secretly reveres '+actions[0],
                             'The second coming of '+existingPeopleFictional[0]+' will come when people start to believe in the (clearly falsified) events of '+events[0],
                             organizations[0]+' and '+organizations[1]+' are working closely to disprove the existence of '+existingPeopleFictional[0],
-                            countries[0]+' does not actually exist. Come on, do you know anyone from '+countries[1]+'?'
+                            countries[0]+' does not actually exist. Come on, do you know anyone from '+countries[1]+'?',
+                            'Through governmental Black Budgets, '+existingPeopleAlive[0]+' has been developing ways for people to relive '+events[0]+' indefinitely',
+                            existingPeopleAlive[0]+' coming to power is prophesized in the Protocols of the Elders of Zion',
+                            religions[0]+' is the one true religion, with '+religions[1]+' being its antithesis',
+                            'The hollow Earth is not only real, '+existingPeopleAlive[0]+' has been there',
+                            organizations[0]+' has been blackmailing '+existingPeopleAlive[0]+' with their pedophilic tendency for decades',
+                            'Contrary to popular belief, Hollywood is actually run by '+religions[0],
+                            existingPeopleALL[0]+' and '+existingPeopleALL[1]+' have met',
+                            'First discussed in the Bohemian Grove, '+events[0]+' was actually orchestrated by '+existingPeopleAlive[0]+' to save humanity from '+events[1],
+                            events[0]+' could have been easily avoided if society put their trust in '+existingPeopleALL[0],
+                            existingPeopleAlive[0]+' is not from Earth',
+                            'All conspiracies, even the ones that are contradictory, are true.',
+                            organizations[0]+' knew about '+events[0]+' weeks before it happened, and did nothing to stop it',
+                            'All conspiracies, except for the ones that are contradictory, are false',
+                            'Though it may not seem like it, '+events[0]+' was actually the first recorded attempt at first contact between humanity and extraterrestrials'
                             ]
 
     return conspiracies
