@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import importlib
 import random
+import re
 import tweepy
 import discord
 from discord.ext import commands
@@ -11,6 +12,7 @@ import roles
 import conspiracy as con
 import siege
 import dnd
+import timezones
 
 load_dotenv('token.env')
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -53,6 +55,8 @@ async def on_ready():
 
 # CHAT RESPONSE ########################################################################################
 
+ampm = re.compile('[0-9]?[0-9]:?[0-9]?[0-9]?[\s]?[ap][m]')
+
 @KomediBot.listen()
 async def on_message(message):
     if message.author.id == KomediBot.user.id:         #no mirrors allowed
@@ -69,10 +73,27 @@ async def on_message(message):
                 response = flavortext + '\n' + roleID
                 await message.channel.send(response)
                 
-    elif 'am ' in message.content.lower() or 'pm ' in message.content.lower(): # Timezone converter
-        pass
+    elif ampm.search(message.content.lower()) != None: # Timezone converter
+        
+        authorRoleIDs = [role.id for role in message.author.roles]
+        authorTimezone = timezones.timezoneFinder(authorRoleIDs)
 
-    LMAOList = ['LMAO','LMFAO','LFMAO','KOMEDI']       #KOMEDI response
+        if ampm.search(message.content.lower()) != None:
+            allTimesToConvert = re.findall(ampm, message.content.lower())
+                
+        timeToConvert = allTimesToConvert[0]                            ######## TODO: make it convert all the times --- is this worth the effort? lol
+        convertedTimes,dateModifiers = timezones.TimeConverter(timeToConvert,authorTimezone)
+
+        serverTimezones = ['PT','ET','UK','CET','EET','SAMT']
+        response = timezones.TimeFormatter(timeToConvert) + ' for ' + message.author.display_name + ' is:\n\n'
+        for i in range(len(serverTimezones)):
+            response+= '**'+serverTimezones[i]+'** : '+convertedTimes[i]+' ('+str(dateModifiers[i])+') | '
+        response = response[:-3]
+        response+= "\n\nDon't trust me around daylight savings switch dates"
+
+        await message.channel.send(response)
+
+    LMAOList = ['LMAO','LMFAO','LFMAO','KOMEDI','LOL']       #KOMEDI response
     for LMAO in LMAOList:
         if LMAO in message.content:
             numKomedi = message.content.count('O')
