@@ -52,6 +52,8 @@ KomediBot = commands.Bot(command_prefix = '~', help_command=None)
 @KomediBot.event
 async def on_ready():
     print(f'KomediBot has connected to Discord!')
+    tyjbnhop = KomediBot.get_channel(400109334182494210)                                                    
+    await tyjbnhop.send('I AM AWAKE NOW. LET THE KOMEDI ENSUE.')                                                                              ########### COMMENT THIS SHIT OUT WHEN TESTING #######################
 
 # CHAT RESPONSE ########################################################################################
 
