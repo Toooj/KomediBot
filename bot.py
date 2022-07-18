@@ -8,11 +8,16 @@ import re
 import tweepy
 import discord
 from discord.ext import commands
+from discord.utils import get
+from discord import FFmpegPCMAudio
+from discord import TextChannel
+from youtube_dl import YoutubeDL
 import roles
 import conspiracy as con
 import siege
 import dnd
 import timezones
+import asyncio
 
 load_dotenv('token.env')
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -28,6 +33,10 @@ LIST_OF_DND_COMMANDS = ['r','roll']
 LIST_OF_RUNESCAPE_COMMANDS = ['osrswiki','osrsge','rs3wiki']
 LIST_OF_MISC_COMMANDS = ['quote','learn','conspiracy','help']
 LIST_OF_ALL_COMMANDS = [*LIST_OF_MUSIC_COMMANDS,*LIST_OF_SIEGE_COMMANDS,*LIST_OF_DND_COMMANDS,*LIST_OF_RUNESCAPE_COMMANDS,*LIST_OF_MISC_COMMANDS]
+
+
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}#, 'default_search' : 'ytsearch'}
+FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'} #idk what these are
 
 # TWITTER FUCKERY # don't ask how this works, i have no idea ##########################################
 
@@ -107,39 +116,128 @@ async def on_message(message):
 
 # Music #
 
-@KomediBot.command()
-async def p(ctx): ## TODO
-    pass
+musicQueue = []
+urlQueue = []
+
+async def join(ctx):
+    channel = ctx.message.author.voice.channel
+    voice = get(KomediBot.voice_clients, guild=ctx.guild)
+    if voice and voice.is_connected():
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
+
 
 @KomediBot.command()
-async def s(ctx): ## TODO
-    pass
+async def p(ctx,url):
+    
+    await join(ctx)
+    voice = get(KomediBot.voice_clients, guild=ctx.guild)
+
+    if not ctx.message.author.voice:
+        await ctx.send('You are not in a voice channel')
+    elif 'http' not in url:
+        await ctx.send('Need a URL (for now)')
+    else:
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title=info.get('title')
+            URL = info['url']
+            await addq(ctx,url)
+
+        if not voice.is_playing():
+            voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS), after = lambda e: asyncio.run_coroutine_threadsafe(nextCoro(ctx), KomediBot.loop))
+async def p_no_addq(ctx,url):
+    
+    await join(ctx)
+    voice = get(KomediBot.voice_clients, guild=ctx.guild)
+
+    if not ctx.message.author.voice:
+        await ctx.send('You are not in a voice channel')
+    elif 'http' not in url:
+        await ctx.send('Need a URL (for now)')
+    else:
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title=info.get('title')
+            URL = info['url']
+
+        if not voice.is_playing():
+            voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS), after = lambda e: asyncio.run_coroutine_threadsafe(nextCoro(ctx), KomediBot.loop))
+async def nextCoro(ctx):
+    urlQueue.pop(0)
+    musicQueue.pop(0)
+    if len(urlQueue) > 0:
+        url = urlQueue[0]
+        print(urlQueue)
+        await p_no_addq(ctx,url)
+    else:
+        await showq(ctx)
+        
 
 @KomediBot.command()
-async def dc(ctx): ## TODO
-    pass
+async def s(ctx):
+    voice = get(KomediBot.voice_clients, guild=ctx.guild)
+    voice.pause()
+    await nextCoro(ctx)
+
+async def stop(ctx):
+    voice = get(KomediBot.voice_clients, guild=ctx.guild)
+    voice.stop()
 
 @KomediBot.command()
-async def showq(ctx): ## TODO
-    pass
+async def dc(ctx):
+    await ctx.guild.voice_client.disconnect() 
 
 @KomediBot.command()
-async def addq(ctx): ## TODO
-    pass
+async def showq(ctx):
+    if len(musicQueue)==0:
+        await ctx.send('Queue is empty!')
+    response = 'Now playing: '+str(musicQueue[0])
+    numLines=0
+    for i in range(len(musicQueue)-1):
+        numLines+=1
+        if numLines < 3:
+            response+= '\n'+str(i+1)+'. '+str(musicQueue[i+1])
+        
+    if numLines-2 > 0:
+        response+='\nAnd '+str(numLines-2)+' more'
+    await ctx.send(response)
 
 @KomediBot.command()
-async def clrq(ctx): ## TODO
-    pass
+async def addq(ctx,url):
+    urlQueue.append(url)
+    
+    with YoutubeDL(YDL_OPTIONS) as ydl:
+        info = ydl.extract_info(url, download=False)
+        title=info.get('title')
+
+    musicQueue.append(title)
+    await ctx.send('Added "'+title+'" to queue')
 
 @KomediBot.command()
-async def play(ctx): ## same as play
-    #p(ctx)
-    pass
+async def clrq(ctx):
+    musicQueue.clear()
+    urlQueue.clear()
+    await stop(ctx)
+    await ctx.send('Queue cleared')
+    
+
+@KomediBot.command()
+async def play(ctx,url): ## same as play
+    await p(ctx,url)
+
+@KomediBot.command()
+async def clearq(ctx): ## same as clrq
+    await clrq(ctx)
     
 @KomediBot.command()
 async def skip(ctx): ## same as skip
-    #s(ctx)
-    pass
+    await s(ctx)
+
+@KomediBot.command()
+async def disconnect(ctx): ## same as dc
+    await dc(ctx)
 
 # Siege #
 
@@ -286,12 +384,12 @@ async def conspiracy(ctx):
 async def help(ctx,full='0'):
     response = '**AVAILABLE COMMANDS:**\n\n'
     response+= '\n**Music:**\n\n'
-    response+= '**~p <link/search item>** : Plays the audio from <link>, or the audio of the first search result for <search item>. Can also use ~play. NOT IMPLEMENTED\n'
-    response+= '**~s** : Skips the current item in the queue. NOT IMPLEMENTED\n'
-    response+= '**~dc** : Disconnects KomediBot from the voice channel. NOT IMPLEMENTED\n'
-    response+= '**~addq <link/search item>** : Adds the audio from <link/search item> to the queue. NOT IMPLEMENTED\n'
-    response+= '**~showq** : Shows the current queue. NOT IMPLEMENTED\n'
-    response+= '**~clrq** : Clears the current queue except for ongoing audio. NOT IMPLEMENTED\n'
+    response+= '**~p <link/search item>** : Plays the audio from <link>, or the audio of the first search result (NOT IMPLEMENTED) for <search item>. Can also use ~play.\n'
+    response+= '**~s** : Skips the current item in the queue. Can also use ~skip.\n'
+    response+= '**~dc** : Disconnects KomediBot from the voice channel.\n'
+    response+= '**~addq <link/search item>** : Adds the audio from <link/search item> (SEARCH NOT IMPLEMENTED) to the queue.\n'
+    response+= '**~showq** : Shows the current queue.\n'
+    response+= '**~clrq** : Clears the current queue except for ongoing audio. Can also use ~clearq.\n'
     response+= '\n**Game Specific:**\n\n'
     response+= '**~r6op <team> <number>** : Generates <number> operators from <team> (i.e. attack/defence).\n'
     response+= '**~r <numdice>d<typedice>** : Rolls <numdice>d<typedice> and displays the result (and individual rolls). Can also use ~roll.\n'

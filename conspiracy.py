@@ -71,7 +71,7 @@ def Conspiracy(organizations,firstNames,lastNames,existingPeopleAlive,existingPe
                             religions[0]+' secretly reveres '+actions[0],
                             'The second coming of '+existingPeopleFictional[0]+' will come when people start to believe in the (clearly falsified) events of '+events[0],
                             organizations[0]+' and '+organizations[1]+' are working closely to disprove the existence of '+existingPeopleFictional[0],
-                            countries[0]+' does not actually exist. Come on, do you know anyone from '+countries[1]+'?',
+                            countries[0]+' does not actually exist. Come on, do you know anyone from '+countries[0]+'?',
                             'Through governmental Black Budgets, '+existingPeopleAlive[0]+' has been developing ways for people to relive '+events[0]+' indefinitely',
                             existingPeopleAlive[0]+' coming to power is prophesized in the Protocols of the Elders of Zion',
                             religions[0]+' is the one true religion, with '+religions[1]+' being its antithesis',
