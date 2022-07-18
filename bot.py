@@ -17,6 +17,7 @@ import conspiracy as con
 import siege
 import dnd
 import timezones
+import urllib
 import asyncio
 
 load_dotenv('token.env')
@@ -35,7 +36,7 @@ LIST_OF_MISC_COMMANDS = ['quote','learn','conspiracy','help']
 LIST_OF_ALL_COMMANDS = [*LIST_OF_MUSIC_COMMANDS,*LIST_OF_SIEGE_COMMANDS,*LIST_OF_DND_COMMANDS,*LIST_OF_RUNESCAPE_COMMANDS,*LIST_OF_MISC_COMMANDS]
 
 
-YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}#, 'default_search' : 'ytsearch'}
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True', 'default_search' : 'ytsearch'}
 FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'} #idk what these are
 
 # TWITTER FUCKERY # don't ask how this works, i have no idea ##########################################
@@ -62,7 +63,7 @@ KomediBot = commands.Bot(command_prefix = '~', help_command=None)
 async def on_ready():
     print(f'KomediBot has connected to Discord!')
     tyjbnhop = KomediBot.get_channel(400109334182494210)                                                    
-    await tyjbnhop.send('I AM AWAKE NOW. LET THE KOMEDI ENSUE.')                                                                              ########### COMMENT THIS SHIT OUT WHEN TESTING #######################
+    #await tyjbnhop.send('I AM AWAKE NOW. LET THE KOMEDI ENSUE.')                                                                              ########### COMMENT THIS SHIT OUT WHEN TESTING #######################
 
 # CHAT RESPONSE ########################################################################################
 
@@ -128,22 +129,36 @@ async def join(ctx):
         voice = await channel.connect()
 
 
+def yt(search):
+    query_string = urllib.parse.urlencode({
+        "search_query": search
+    })
+    html_content = urllib.request.urlopen(
+        "http://www.youtube.com/results?" + query_string
+    )
+    search_results = re.findall(r"watch\?v=(\S{11})", html_content.read().decode())
+    return "http://www.youtube.com/watch?v=" + search_results[0]
+
+
 @KomediBot.command()
-async def p(ctx,url):
+async def p(ctx,*,url):
     
     await join(ctx)
     voice = get(KomediBot.voice_clients, guild=ctx.guild)
+    #print(url)
 
     if not ctx.message.author.voice:
         await ctx.send('You are not in a voice channel')
-    elif 'http' not in url:
-        await ctx.send('Need a URL (for now)')
+    elif 'http' not in url:    
+        query = url
+        #print(yt(query))
+        await p(ctx,url=yt(query))
     else:
         with YoutubeDL(YDL_OPTIONS) as ydl:
             info = ydl.extract_info(url, download=False)
             title=info.get('title')
             URL = info['url']
-            await addq(ctx,url)
+            await addq(ctx,url=url)
 
         if not voice.is_playing():
             voice.play(FFmpegPCMAudio(URL, **FFMPEG_OPTIONS), after = lambda e: asyncio.run_coroutine_threadsafe(nextCoro(ctx), KomediBot.loop))
@@ -205,7 +220,11 @@ async def showq(ctx):
     await ctx.send(response)
 
 @KomediBot.command()
-async def addq(ctx,url):
+async def addq(ctx,*,url):
+    if 'http' not in url:    
+        query = url
+        url=yt(query)
+    
     urlQueue.append(url)
     
     with YoutubeDL(YDL_OPTIONS) as ydl:
@@ -381,34 +400,36 @@ async def conspiracy(ctx):
     await ctx.send(conspiracies[0])
 
 @KomediBot.command()
-async def help(ctx,full='0'):
+async def help(ctx,*,kw=''):
+
     response = '**AVAILABLE COMMANDS:**\n\n'
     response+= '\n**Music:**\n\n'
-    response+= '**~p <link/search item>** : Plays the audio from <link>, or the audio of the first search result (NOT IMPLEMENTED) for <search item>. Can also use ~play.\n'
+    response+= '**~p <link/search item>** : Plays the audio from <link>, or the audio of the first search result for <search item>. Can also use ~play.\n'
     response+= '**~s** : Skips the current item in the queue. Can also use ~skip.\n'
     response+= '**~dc** : Disconnects KomediBot from the voice channel.\n'
-    response+= '**~addq <link/search item>** : Adds the audio from <link/search item> (SEARCH NOT IMPLEMENTED) to the queue.\n'
+    response+= '**~addq <link/search item>** : Adds the audio from <link/search item> to the queue.\n'
     response+= '**~showq** : Shows the current queue.\n'
     response+= '**~clrq** : Clears the current queue except for ongoing audio. Can also use ~clearq.\n'
-    response+= '\n**Game Specific:**\n\n'
-    response+= '**~r6op <team> <number>** : Generates <number> operators from <team> (i.e. attack/defence).\n'
-    response+= '**~r <numdice>d<typedice>** : Rolls <numdice>d<typedice> and displays the result (and individual rolls). Can also use ~roll.\n'
-    response+= '**~osrswiki <item>** : Returns OSRS wiki page for <item>. NOT IMPLEMENTED\n'
-    response+= '**~osrsge <item>** : Returns OSRS GE information from wiki for <item>. NOT IMPLEMENTED\n'
-    response+= '**~rs3wiki <item>** : Returns RS3 wiki page for <item>. NOT IMPLEMENTED\n'
+    if 'games' in kw:
+        response+= '\n**Game Specific:**\n\n'
+        response+= '**~r6op <team> <number>** : Generates <number> operators from <team> (i.e. attack/defence).\n'
+        response+= '**~r <numdice>d<typedice>** : Rolls <numdice>d<typedice> and displays the result (and individual rolls). Can also use ~roll.\n'
+        response+= '**~osrswiki <item>** : Returns OSRS wiki page for <item>. NOT IMPLEMENTED\n'
+        response+= '**~osrsge <item>** : Returns OSRS GE information from wiki for <item>. NOT IMPLEMENTED\n'
+        response+= '**~rs3wiki <item>** : Returns RS3 wiki page for <item>. NOT IMPLEMENTED\n'
     response+= '\n**Misc:**\n\n'
     response+= '**~quote** : Generates a random quote from the BBB Twitter @BBBQuotes1.\n'
     response+= '**~conspiracy** : Generates random conspiracy theory.\n'
     response+= '**~help** : I think you know what it does... <:fuckboi:988374504168390717>'
 
-    if full.lower() == 'full' or full == '1':
-        full = 1
+    if 'passives' in kw:
 
-    if full==1:
         response+= '\n\n**PASSIVE FUNCTIONS:**\n\n'
         response+= '- Responds to LMAO variants with "KOMEDI" as many times as there are Os.\n'
-        response+= '- Automatically converts and messages timezone based on timezone role of sender. NOT IMPLEMENTED\n'
-
+        response+= '- Automatically converts and messages timezone based on timezone role of sender.\n'
+        
+    response+= '\n**Use the keywords "games" and/or "passives" to see more commands**'
+    response+= '\n**For example, try replying with "~help games"**'
     await ctx.send('Check your DMs <:fuckboi:988374504168390717>') #fuckboi emoji
     await ctx.author.send(response)
 
