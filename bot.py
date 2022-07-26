@@ -7,7 +7,7 @@ import random
 import re
 import tweepy
 import discord
-from discord.ext import commands
+from discord.ext import commands,tasks
 from discord.utils import get
 from discord import FFmpegPCMAudio
 from discord import TextChannel
@@ -15,10 +15,12 @@ from youtube_dl import YoutubeDL
 import roles
 import conspiracy as con
 import siege
+import birthdays
 import dnd
 import timezones
 import urllib
 import asyncio
+from datetime import date
 
 load_dotenv('token.env')
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -28,7 +30,7 @@ SERVER_ID = os.getenv('SERVER_ID')
 
 random.seed()
 
-LIST_OF_MUSIC_COMMANDS = ['p','s','dc','play','skip','showq','addq','clrq']
+LIST_OF_MUSIC_COMMANDS = ['p','s','dc','play','skip','showq','addq','clrq','clearq','disconnect']
 LIST_OF_SIEGE_COMMANDS = ['r6op']
 LIST_OF_DND_COMMANDS = ['r','roll']
 LIST_OF_RUNESCAPE_COMMANDS = ['osrswiki','osrsge','rs3wiki']
@@ -62,8 +64,27 @@ KomediBot = commands.Bot(command_prefix = '~', help_command=None)
 @KomediBot.event
 async def on_ready():
     print(f'KomediBot has connected to Discord!')
-    tyjbnhop = KomediBot.get_channel(400109334182494210)                                                    
+    tyjbnhop = KomediBot.get_channel(400109334182494210)       
+    birthday.start()
     #await tyjbnhop.send('I AM AWAKE NOW. LET THE KOMEDI ENSUE.')                                                                              ########### COMMENT THIS SHIT OUT WHEN TESTING #######################
+
+
+# BIRTHDAY STUFF ########################################################################################
+
+@tasks.loop(hours=24)
+async def birthday():
+    #print('called')
+    today = str(date.today())
+    response=''
+    for key in birthdays.birthdayDict.keys():
+        if today[5:] in key:
+            response = '**HAPPY BIRTHDAY**!!! ~~I remembered because I am a robot and now everyone else can use me to pretend they knew it was your birthday!~~\n'
+            response+= '<@'+str(birthdays.birthdayDict[key])+'>'
+            tyjbnhop = KomediBot.get_channel(400109334182494210)  
+            await tyjbnhop.send(response)
+    if response == '':
+        print('not a bday today')
+
 
 # CHAT RESPONSE ########################################################################################
 
@@ -79,7 +100,7 @@ async def on_message(message):
             if alias == message.content[1:len(alias)+1]:
 
                 gameSummonData = roles.gameSummonDict[alias]
-                flavortext = gameSummonData[1]
+                flavortext = gameSummonData[1] #is this a bug? [0]?
                 roleID = gameSummonData[0]
 
                 response = flavortext + '\n' + roleID
@@ -243,7 +264,7 @@ async def clrq(ctx):
     
 
 @KomediBot.command()
-async def play(ctx,url): ## same as play
+async def play(ctx,url): ## same as p
     await p(ctx,url)
 
 @KomediBot.command()
@@ -251,7 +272,7 @@ async def clearq(ctx): ## same as clrq
     await clrq(ctx)
     
 @KomediBot.command()
-async def skip(ctx): ## same as skip
+async def skip(ctx): ## same as s
     await s(ctx)
 
 @KomediBot.command()
